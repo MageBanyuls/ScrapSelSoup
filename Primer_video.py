@@ -155,12 +155,13 @@ def getData(parte_df):
         time.sleep(1)
 
         wait.until(EC.presence_of_element_located((By.XPATH,'//*[@id="up"]/div[5]')))
+        # Obtener el html con selenium
         html_text = driver.page_source
 
-        # Crear un objeto BeautifulSoup para analizar el HTML
+        # Crear BSoup con el Html
         soup = BeautifulSoup(html_text, "html.parser")
 
-        # Encontrar todos los divs con la clase "panel panel-primary panel-agente"
+        # Encontrar todos los divs que empicen "div-resumen-"
         divs_resumen = soup.find_all(lambda tag: tag.name == "div" and tag.get("id") and tag.get("id").startswith("div-resumen-"))
 
         # Crear un diccionario para almacenar los datos
@@ -171,7 +172,7 @@ def getData(parte_df):
             # Buscar el div con la clase "panel-body" dentro del div de resumen
             panel_body = resumen.find("div", class_="panel-body")
             
-            # Si no se encuentra el panel body, omitir este resumen
+            # Si no encuentro el panel body, omitimos el resumen
             if not panel_body:
                 continue
             
@@ -185,7 +186,7 @@ def getData(parte_df):
             # Encontrar todas las filas de datos en la tabla
             filas_tabla = tabla.find_all("tr")
             
-            # Obtener los nombres de las columnas de la penúltima fila
+            # Obtener los nombres de las columnas de la penúltima fila porque en la ultima estan los valores y las anteriores no sirven
             columnas = [td.text.strip() for td in filas_tabla[-2].find_all("td")]
             
             # Obtener los valores de la última fila
@@ -251,13 +252,13 @@ if __name__ == "__main__":
     resultados_df = pd.DataFrame()
 
     df_no = df[df['Revisado'] == 'No']
-    # Dividir el DataFrame en partes para distribuir entre los hilos
-    num_threads = 1
+    # Dividir el DataFrame en partes para distribuir entre los trabajadores
+    num_threads = 20
     particiones = np.array_split(df_no, num_threads)
 
 
-    # Configurar el número máximo de hilos
-    max_workers = 1
+    # Configurar el número máximo de trabajadores
+    max_workers = 20
 
     # Crear un ThreadPoolExecutor
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
